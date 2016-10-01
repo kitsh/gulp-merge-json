@@ -1,15 +1,15 @@
 {
-  "name": "gulp-merge-json",
-  "version": "0.6.0",
+  "name": "gulp-merge-json-no-intersection",
+  "version": "0.0.0",
   "description": "A gulp plugin to merge JSON files into one file",
-  "author": "Josh Swan <josh@sportifik.com>",
+  "author": "Josh Swan <josh@sportifik.com>, Barry Martin",
   "main": "./index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/joshswan/gulp-merge-json"
+    "url": "https://github.com/kitsh/gulp-merge-json"
   },
   "bugs": {
-    "url": "https://github.com/joshswan/gulp-merge-json/issues"
+    "url": "https://github.com/kitsh/gulp-merge-json/issues"
   },
   "keywords": [
     "gulpplugin",

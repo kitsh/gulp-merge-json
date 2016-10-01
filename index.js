@@ -13,17 +13,24 @@ var through = require('through');
 
 var PLUGIN_NAME = 'gulp-merge-json';
 
-function merge(a, b, concatArrays) {
+function merge(a, b, concatArrays, noIntersection) {
+  if(noIntersection) {
+    Object.keys(a).forEach( function(key ) {
+      if( b[key] != void 0) {
+        console.error('Duplicate key: ' + key);
+        throw new gutil.PluginError(PLUGIN_NAME, PLUGIN_NAME + ': Duplicate keys not allowed!');
+      }
+    });
+  }
   if (Array.isArray(a) && concatArrays) {
     return a.concat(b);
   }
-
   return _.mergeWith(a, b, function(a, b) {
     return Array.isArray(a) && concatArrays ? a.concat(b) : undefined;
   });
 }
 
-module.exports = function(fileName, edit, startObj, endObj, exportModule, concatArrays) {
+module.exports = function(fileName, edit, startObj, endObj, exportModule, concatArrays, noIntersection) {
   var jsonReplacer = null;
   var jsonSpace = '\t';
   var json5 = false;
@@ -40,6 +47,7 @@ module.exports = function(fileName, edit, startObj, endObj, exportModule, concat
     jsonSpace = opts.jsonSpace || '\t';
     concatArrays = opts.concatArrays;
     json5 = opts.json5;
+    noIntersection = opts.noIntersection;
   }
 
   var _JSON = (json5) ? JSON5 : JSON;
@@ -53,7 +61,7 @@ module.exports = function(fileName, edit, startObj, endObj, exportModule, concat
   if (typeof edit === 'function') {
     editFunc = edit;
   } else if (typeof edit === 'object') {
-    editFunc = function(json) { return merge(json, edit, concatArrays); };
+    editFunc = function(json) { return merge(json, edit, concatArrays, noIntersection); };
   } else {
     editFunc = function(json) { return json; };
   }
@@ -84,7 +92,7 @@ module.exports = function(fileName, edit, startObj, endObj, exportModule, concat
     }
 
     try {
-      merged = merge(merged, editFunc(parsed, file), concatArrays);
+      merged = merge(merged, editFunc(parsed, file), concatArrays, noIntersection);
     } catch (err) {
       return this.emit('error', new gutil.PluginError(PLUGIN_NAME, err));
     }
@@ -96,7 +104,11 @@ module.exports = function(fileName, edit, startObj, endObj, exportModule, concat
     }
 
     if (endObj) {
-      merged = merge(merged, endObj, concatArrays);
+      try {
+        merged = merge(merged, endObj, concatArrays, noIntersection);
+      } catch (err) {
+        return this.emit('error', new gutil.PluginError(PLUGIN_NAME, err));
+      }
     }
 
     var contents = _JSON.stringify(merged, jsonReplacer, jsonSpace);
